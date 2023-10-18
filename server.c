@@ -146,8 +146,18 @@ void handle_request(struct server_app *app, int client_socket) {
 
     // TODO: Parse the header and extract essential fields, e.g. file name
     // Hint: if the requested path is "/" (root), default to index.html
+
+    //parsing the string
     char file_name[] = "index.html";
-    printf(request);
+    char *get = strtok(request, " ");
+    char *file = strtok(NULL, " ");
+    char *next = strtok(NULL, "\n");
+
+    // print statements for testing
+    printf("\n%s\n", get);
+    printf("%s\n", file);
+    printf("%s", next);
+    printf("\n\n%s\n\n", request);
     // TODO: Implement proxy and call the function under condition
     // specified in the spec
     // if (need_proxy(...)) {
