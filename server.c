@@ -3,14 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <string>
 #include <stdlib.h>
 #include <unistd.h>
 #include <getopt.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <iostream>
-#include <cstring>
 
 
 
@@ -144,13 +141,13 @@ void handle_request(struct server_app *app, int client_socket) {
 
     buffer[bytes_read] = '\0';
     // copy buffer to a new string
-    char *request = (char*)malloc(strlen(buffer) + 1);
+    char *request = malloc(strlen(buffer) + 1);
     strcpy(request, buffer);
 
     // TODO: Parse the header and extract essential fields, e.g. file name
     // Hint: if the requested path is "/" (root), default to index.html
     char file_name[] = "index.html";
-    std::cout << buffer[0]; 
+    printf(request);
     // TODO: Implement proxy and call the function under condition
     // specified in the spec
     // if (need_proxy(...)) {
