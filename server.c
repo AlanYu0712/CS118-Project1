@@ -148,22 +148,34 @@ void handle_request(struct server_app *app, int client_socket) {
     // Hint: if the requested path is "/" (root), default to index.html
 
     //parsing the string
-    char file_name[] = "index.html";
-    char *get = strtok(request, " ");
-    char *file = strtok(NULL, " ");
-    char *next = strtok(NULL, "\n");
+    char file_name[] = "index.html";        // default
+    char *get = strtok(request, " ");       // GET request
+    char *file = strtok(NULL, " ");         // file name
+    char *http = strtok(NULL, "\n");        // HTTP version
+
+    //check for get request
+    if (strcmp(get, "GET") == 0) {
+        //get filename 
+        if (strcmp(file, "/") == 0) {
+            serve_local_file(client_socket, file_name);
+        }
+        else {
+            serve_local_file(client_socket, file_name);
+        }
+    }
 
     // print statements for testing
-    printf("\n%s\n", get);
-    printf("%s\n", file);
-    printf("%s", next);
-    printf("\n\n%s\n\n", request);
+    // printf("\n%s\n", get);
+    // printf("%s\n", file);
+    // printf("%s", next);
+    // printf("\n\n%s\n\n", request);
+
     // TODO: Implement proxy and call the function under condition
     // specified in the spec
     // if (need_proxy(...)) {
     //    proxy_remote_file(app, client_socket, file_name);
     // } else {
-    serve_local_file(client_socket, file_name);
+    // serve_local_file(client_socket, file_name);
     //}
 }
 
@@ -178,6 +190,31 @@ void serve_local_file(int client_socket, const char *path) {
     // * Also send file content
     // (When the requested file does not exist):
     // * Generate a correct response
+
+    //parse the file name
+    char *file = strtok(path, ".");
+    char *extension = strtok(NULL, "\0");       //extentsion
+
+
+    //TODO: retrieve file
+    //TODO: get content length
+
+    //TODO: send response
+    if ((strcmp(extension, "txt") == 0)) {
+        char response[] = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Length: ";
+        send(client_socket, response, strlen(response), 0);
+    }
+    else if ((strcmp(extension, "html") == 0)) {
+        char response[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: ";
+        send(client_socket, response, strlen(response), 0);
+    }
+    else if((strcmp(extension, "jpg"))) {
+        char response[] = "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg; charset=UTF-8\r\nContent-Length: ";
+        send(client_socket, response, strlen(response), 0);
+    }
+    else {
+        //TODO: send an error
+    }
 
     char response[] = "HTTP/1.0 200 OK\r\n"
                       "Content-Type: text/plain; charset=UTF-8\r\n"
