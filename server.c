@@ -39,6 +39,7 @@ void parse_args(int argc, char *argv[], struct server_app *app);
 void handle_request(struct server_app *app, int client_socket);
 void serve_local_file(int client_socket, const char *path);
 void proxy_remote_file(struct server_app *app, int client_socket, const char *path);
+char *read_file(char *filename);
 
 // The main function is provided and no change is needed
 int main(int argc, char *argv[])
@@ -157,18 +158,28 @@ void handle_request(struct server_app *app, int client_socket) {
     if (strcmp(get, "GET") == 0) {
         //get filename 
         if (strcmp(file, "/") == 0) {
+            printf("FILE: /\n");
             serve_local_file(client_socket, file_name);
         }
         else {
-            serve_local_file(client_socket, file_name);
+            if (file[0] == '/') {
+                char mod_file[strlen(file)];
+                strcpy(mod_file, &file[1]);
+                printf("FILE: %s\n", mod_file);
+                serve_local_file(client_socket, mod_file);
+            }
+            else {
+                printf("FILE: %s\n", file);
+                serve_local_file(client_socket, file);
+            }
         }
     }
 
     // print statements for testing
-    // printf("\n%s\n", get);
-    // printf("%s\n", file);
-    // printf("%s", next);
-    // printf("\n\n%s\n\n", request);
+    printf("\n%s\n", get);
+    printf("%s\n", file);
+    printf("%s", http);
+    printf("\n\n%s\n\n", request);
 
     // TODO: Implement proxy and call the function under condition
     // specified in the spec
@@ -194,35 +205,68 @@ void serve_local_file(int client_socket, const char *path) {
     //parse the file name
     char *file = strtok(path, ".");
     char *extension = strtok(NULL, "\0");       //extentsion
+    char *full_path = malloc(strlen(file) + strlen(extension) + 2);
+    strcpy(full_path, file);
+    strcat(full_path, ".");
+    strcat(full_path, extension);
+    printf("FULL PATH: %s\n", full_path);
+    printf("extension: %s\n", extension);
 
 
     //TODO: retrieve file
-    //TODO: get content length
 
-    //TODO: send response
+    char *file_contents = read_file(full_path);
+    if (file_contents == NULL) {
+        printf("Error reading file.\n");
+    }
+    printf("File Contents:\n\n%s\n", file_contents);
+
+    //TODO: get content length
+    int content_length = strlen(file_contents);
+
+    //test
+    // char response[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: ";
+    // int total_length = strlen(response) + content_length + 10;
+    // char buffer[total_length];
+    // snprintf(buffer, total_length, "%s%d\r\n\r\n%s", response, content_length, file_contents);
+
+    // //TODO: send response
     if ((strcmp(extension, "txt") == 0)) {
         char response[] = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Length: ";
+        int total_length = strlen(response) + content_length + 10;
+        char buffer[total_length];
+        snprintf(buffer, total_length, "%s%d\r\n\r\n%s", response, content_length, file_contents);
         send(client_socket, response, strlen(response), 0);
     }
     else if ((strcmp(extension, "html") == 0)) {
         char response[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: ";
-        send(client_socket, response, strlen(response), 0);
+        int total_length = strlen(response) + content_length + 10;
+        char buffer[total_length];
+        snprintf(buffer, total_length, "%s%d\r\n\r\n%s", response, content_length, file_contents);
+        send(client_socket, buffer, strlen(buffer), 0);
+        
     }
     else if((strcmp(extension, "jpg"))) {
         char response[] = "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg; charset=UTF-8\r\nContent-Length: ";
-        send(client_socket, response, strlen(response), 0);
+        int total_length = strlen(response) + content_length + 10;
+        char buffer[total_length];
+        snprintf(buffer, total_length, "%s%d\r\n\r\n%s", response, content_length, file_contents);
+        send(client_socket, buffer, strlen(buffer), 0);
     }
     else {
         //TODO: send an error
     }
 
-    char response[] = "HTTP/1.0 200 OK\r\n"
-                      "Content-Type: text/plain; charset=UTF-8\r\n"
-                      "Content-Length: 15\r\n"
-                      "\r\n"
-                      "Sample response";
+    // free memory
+    free(file_contents);
 
-    send(client_socket, response, strlen(response), 0);
+    // char response[] = "HTTP/1.0 200 OK\r\n"
+    //                   "Content-Type: text/plain; charset=UTF-8\r\n"
+    //                   "Content-Length: 15\r\n"
+    //                   "\r\n"
+    //                   "Sample response";
+
+    // send(client_socket, buffer, strlen(buffer), 0);
 }
 
 void proxy_remote_file(struct server_app *app, int client_socket, const char *request) {
@@ -237,4 +281,32 @@ void proxy_remote_file(struct server_app *app, int client_socket, const char *re
 
     char response[] = "HTTP/1.0 501 Not Implemented\r\n\r\n";
     send(client_socket, response, strlen(response), 0);
+}
+
+char *read_file(char *filename) {
+    FILE *file;
+    file = fopen(filename, "r");
+
+    //file doesn't contain anything
+    if (file == NULL) {
+        return NULL;
+    }
+
+    fseek(file, 0, SEEK_END);
+    int length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    char *string = malloc(sizeof(char) * (length + 1));
+
+    char c;
+    int i = 0;
+    while ((c = fgetc(file)) != EOF) {
+        string[i] = c;
+        i++;
+    }
+
+    string[i] = '\0';
+    fclose(file);
+
+    return string;
 }
