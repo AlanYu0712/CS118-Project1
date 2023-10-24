@@ -8,6 +8,9 @@
 #include <getopt.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <iostream>
+
+using namespace std;
 
 /**
  * Project 1 starter code
@@ -139,12 +142,13 @@ void handle_request(struct server_app *app, int client_socket) {
 
     buffer[bytes_read] = '\0';
     // copy buffer to a new string
-    char *request = malloc(strlen(buffer) + 1);
+    char *request = (char*) malloc(strlen(buffer) + 1);
     strcpy(request, buffer);
 
     // TODO: Parse the header and extract essential fields, e.g. file name
     // Hint: if the requested path is "/" (root), default to index.html
     char file_name[] = "index.html";
+    cout << "Hello World";
 
     // TODO: Implement proxy and call the function under condition
     // specified in the spec
