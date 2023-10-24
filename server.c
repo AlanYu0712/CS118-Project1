@@ -145,6 +145,8 @@ void handle_request(struct server_app *app, int client_socket) {
     char *request = malloc(strlen(buffer) + 1);
     strcpy(request, buffer);
 
+    printf("\nI am now requesting this: %s", request);
+
     // TODO: Parse the header and extract essential fields, e.g. file name
     // Hint: if the requested path is "/" (root), default to index.html
 
@@ -176,10 +178,11 @@ void handle_request(struct server_app *app, int client_socket) {
     }
 
     // print statements for testing
-    printf("\n%s\n", get);
-    printf("%s\n", file);
-    printf("%s", http);
-    printf("\n\n%s\n\n", request);
+    printf("\nThis is get: %s\n", get);
+    printf("This is file: %s\n", file);
+    printf("This is http: %s", http);
+    printf("\n\nThis is request: %s\n\n", request);
+    printf("\nThat's ONE LOOP!!!!\n");
 
     // TODO: Implement proxy and call the function under condition
     // specified in the spec
