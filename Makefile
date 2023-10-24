@@ -1,5 +1,5 @@
 CC=gcc
-SRC=server.cpp
+SRC=server.c
 OBJ=server
 
 all: $(OBJ)
