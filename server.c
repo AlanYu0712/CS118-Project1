@@ -222,6 +222,8 @@ void serve_local_file(int client_socket, const char *path) {
     if (file_contents == NULL) {
         printf("Error reading file.\n");
     }
+
+    else{
     printf("File Contents:\n\n%s\n", file_contents);
 
     //TODO: get content length
@@ -239,7 +241,7 @@ void serve_local_file(int client_socket, const char *path) {
         int total_length = strlen(response) + content_length + 10;
         char buffer[total_length];
         snprintf(buffer, total_length, "%s%d\r\n\r\n%s", response, content_length, file_contents);
-        send(client_socket, response, strlen(response), 0);
+        send(client_socket, buffer, strlen(buffer), 0);
     }
     else if ((strcmp(extension, "html") == 0)) {
         char response[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: ";
@@ -249,17 +251,18 @@ void serve_local_file(int client_socket, const char *path) {
         send(client_socket, buffer, strlen(buffer), 0);
         
     }
-    else if((strcmp(extension, "jpg"))) {
+    else if((strcmp(extension, "jpg")==0)) {
         char response[] = "HTTP/1.1 200 OK\r\nContent-Type: image/jpeg; charset=UTF-8\r\nContent-Length: ";
         int total_length = strlen(response) + content_length + 10;
         char buffer[total_length];
         snprintf(buffer, total_length, "%s%d\r\n\r\n%s", response, content_length, file_contents);
+        printf("Im sending a jpg!");
         send(client_socket, buffer, strlen(buffer), 0);
     }
     else {
         //TODO: send an error
     }
-
+    }
     // free memory
     free(file_contents);
 
