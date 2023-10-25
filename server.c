@@ -226,6 +226,36 @@ void serve_local_file(int client_socket, const char *path) {
         strcpy(full_path,file);
 
     }
+
+    //checking for special characters
+    if(strstr(full_path, "%20") != NULL) {
+        printf("\n--------------SPECIAL CHARACTERS--------------\n");
+        printf("THIS HAS A %%20 in it\n");
+        char *first_half = strtok(full_path, "%");
+        printf("FIRST HALF: %s\n", first_half);
+        char *second_half = &(strtok(NULL, "\0"))[2];
+        printf("SECOND HALF: %s\n", second_half);
+        full_path = malloc(strlen(first_half) + strlen(second_half) + 2);
+        strcpy(full_path, first_half);
+        strcat(full_path, " ");
+        strcat(full_path, second_half);
+        printf("EDITED STRING: %s\n", full_path);
+        printf("--------------SPECIAL CHARACTERS--------------\n\n");
+    }
+    if(strstr(full_path, "%25") != NULL) {
+        printf("\n--------------SPECIAL CHARACTERS--------------\n");
+        printf("THIS HAS A %%25 in it\n");
+        char *first_half = strtok(full_path, "%");
+        printf("FIRST HALF: %s\n", first_half);
+        char *second_half = &(strtok(NULL, "\0"))[2];
+        printf("SECOND HALF: %s\n", second_half);
+        full_path = malloc(strlen(first_half) + strlen(second_half) + 2);
+        strcpy(full_path, first_half);
+        strcat(full_path, "%");
+        strcat(full_path, second_half);
+        printf("EDITED STRING: %s\n", full_path);
+        printf("--------------SPECIAL CHARACTERS--------------\n\n");
+    }
     
     printf("FULL PATH: %s\n", full_path);
     printf("extension: %s\n", extension);
@@ -241,7 +271,7 @@ void serve_local_file(int client_socket, const char *path) {
     else{
         printf("File Contents:\n\n%s\n", file_contents);
 
-        //TODO: get content length
+        // get content length
         int content_length = find_length(full_path);
         printf("Content length is: %d\n",content_length);
 
