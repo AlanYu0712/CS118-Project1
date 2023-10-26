@@ -146,36 +146,60 @@ void handle_request(struct server_app *app, int client_socket) {
     char *request = malloc(strlen(buffer) + 1);
     strcpy(request, buffer);
 
-    printf("\nI am now requesting this: %s", request);
+    printf("\nI am now requesting this: %s\n\n", request);
 
     // TODO: Parse the header and extract essential fields, e.g. file name
     // Hint: if the requested path is "/" (root), default to index.html
 
     //parsing the string
     char file_name[] = "index.html";        // default
-    char *get = strtok(request, " ");       // GET request
+    char *manipulate_request = malloc(strlen(request)+1);
+    strcpy(manipulate_request, request);
+    char *get = strtok(manipulate_request, " ");       // GET request
     char *file = strtok(NULL, " ");         // file name
+    char *manipulate_file = malloc(strlen(file)+1);
+    strcpy(manipulate_file, file);
     char *http = strtok(NULL, "\n");        // HTTP version
+    char *name = strtok(manipulate_file, ".");
+    char *extension = strtok(NULL, "\0"); 
+    
 
     //check for get request
     if (strcmp(get, "GET") == 0) {
-        //get filename 
-        if (strcmp(file, "/") == 0) {
-            printf("FILE: /\n");
-            serve_local_file(client_socket, file_name);
+        // TODO: Implement proxy and call the function under condition
+        // specified in the spec
+        // if (need_proxy(...)) {
+        //    proxy_remote_file(app, client_socket, file_name);
+        // } else {
+        // serve_local_file(client_socket, file_name);
+        //}
+        
+        
+        if(extension && strcmp(extension,"ts")==0){
+            printf("HANDLING REQUEST, EXTENSION IS: %s\n",extension);
+            proxy_remote_file(app, client_socket, request);
         }
-        else {
-            if (file[0] == '/') {
-                char mod_file[strlen(file)];
-                strcpy(mod_file, &file[1]);
-                printf("FILE: %s\n", mod_file);
-                serve_local_file(client_socket, mod_file);
+        else{
+            //get filename 
+            if (strcmp(file, "/") == 0) {
+                printf("FILE: /\n");
+                serve_local_file(client_socket, file_name);
             }
             else {
-                printf("FILE: %s\n", file);
-                serve_local_file(client_socket, file);
+                if (file[0] == '/') {
+                    char mod_file[strlen(file)];
+                    strcpy(mod_file, &file[1]);
+                    printf("FILE: %s\n", mod_file);
+                    serve_local_file(client_socket, mod_file);
+                }
+                else {
+                    printf("FILE: %s\n", file);
+                    serve_local_file(client_socket, file);
+                }
             }
         }
+
+        
     }
 
     // print statements for testing
@@ -340,8 +364,62 @@ void proxy_remote_file(struct server_app *app, int client_socket, const char *re
     // * When connection to the remote server fail, properly generate
     // HTTP 502 "Bad Gateway" response
 
-    char response[] = "HTTP/1.0 501 Not Implemented\r\n\r\n";
-    send(client_socket, response, strlen(response), 0);
+    int c_socket;
+    c_socket = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
+    if(c_socket<0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("SOCKET IS BUILT!\n");
+
+    struct sockaddr_in sad;  
+    memset(&sad, 0, sizeof(sad));
+    sad.sin_family = AF_INET;
+    sad.sin_addr.s_addr = inet_addr(app->remote_host);
+    sad.sin_port = htons(app->remote_port); 
+    if (connect(c_socket, (struct sockaddr *)&sad, sizeof(sad))< 0) {
+        perror("connect failed");
+        exit(EXIT_FAILURE);
+    }else{
+        printf("Accepted connection from %s:%d\n", inet_ntoa(sad.sin_addr), ntohs(sad.sin_port));
+    }
+
+    printf("CONNECTION IS MADE!\n");
+
+    //int back_socket = accept(c_socket, (struct sockaddr*)&sad, sizeof(sad));
+    if(send(c_socket,request, strlen(request),0)<0){
+        printf("REQUEST SENT UNSUCCESSFULLY");
+    }else printf("REQUEST SENT to %d!; and client socket looks like this: %d\n",c_socket,client_socket);
+    printf("Request is as follows:\n %s",request);
+
+        char buffer[BUFFER_SIZE];
+        ssize_t bytes_read;
+
+    while(1){
+        
+        //printf("I AM GOING TO WAIT :<\n");
+        bytes_read = recv(c_socket, buffer, sizeof(buffer) - 1, 0);
+        //printf("I STOPPED WAITING :>\n");
+        if (bytes_read <= 0) {
+            printf("not receiving anything no more\n");
+            printf("\n%s\n",buffer);
+            send(client_socket, "\0", 1, 0);
+            printf("RESPONSE SENT!\n");
+            break;
+        }
+        printf("\n%s\n",buffer);
+        // copy buffer to a new string
+        //char *response = malloc(bytes_read + 1);
+        //strcpy(response, buffer);
+
+        
+
+        //char response[] = "HTTP/1.0 501 Not Implemented\r\n\r\n";
+        send(client_socket, buffer, bytes_read, 0);
+    }
+    
+    
 }
 
 char *read_file(char *filename) {
