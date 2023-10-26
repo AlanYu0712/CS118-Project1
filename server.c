@@ -230,8 +230,6 @@ void serve_local_file(int client_socket, const char *path) {
     // (When the requested file does not exist):
     // * Generate a correct response
 
-    //TODO: deal with spaces(that is %20 look for both %20 and subs with spaces)
-
     //parse the file name
     printf("Start parsing %s\n",path);
     char *file = strtok(path, ".");
@@ -252,21 +250,54 @@ void serve_local_file(int client_socket, const char *path) {
     }
 
     //checking for special characters
-    if(strstr(full_path, "%20") != NULL) {
+    // while(strstr(full_path, "%%20") != NULL) {
+    //     printf("\n--------------SPECIAL CHARACTERS--------------\n");
+    //     char *first_half = strtok(full_path, "%");
+    //     char *second_half = strtok(NULL, "\0");
+    //     printf("FIRST HALF: %s\n", first_half);
+    //     // char *edited_second_half = &(second_half)[2];
+    //     //checking for spaces
+    //     if (second_half[0] == '2' && second_half[1] == '0') {
+    //         printf("********THIS HAS %20********\n");
+    //         strcpy(full_path, first_half);
+    //         strcat(full_path, " ");
+    //         strcat(full_path, second_half);
+    //     }
+    //     //checking for % sign
+    //     if (second_half[0] == '2' && second_half[1] == '5') {
+    //         printf("********THIS HAS %25********\n");
+    //         strcpy(full_path, first_half);
+    //         strcat(full_path, "%");
+    //         strcat(full_path, second_half);
+    //     }
+        // else {
+        //     printf("********THIS IS THE ELSE STATEMENT********\n");
+        //     strcpy(full_path, first_half);
+        //     strcat(full_path, "%");
+        //     strcat(full_path, second_half);
+        // }
+    //     printf("FIRST HALF: %s\n", first_half);
+    //     printf("SECOND HALF: %s\n", second_half);
+    //     printf("FULL PATH: %s\n", full_path);
+        
+    //     printf("--------------SPECIAL CHARACTERS--------------\n\n");
+    // }
+    while(strstr(full_path, "%20") != NULL) {
         printf("\n--------------SPECIAL CHARACTERS--------------\n");
         printf("THIS HAS A %%20 in it\n");
-        char *first_half = strtok(full_path, "%");
+        char *first_half = strtok(full_path, "%20");
         printf("FIRST HALF: %s\n", first_half);
-        char *second_half = &(strtok(NULL, "\0"))[2];
+        char *second_half = strtok(NULL, "\0");
+        char *edited_second_half = &second_half[2];
         printf("SECOND HALF: %s\n", second_half);
         full_path = malloc(strlen(first_half) + strlen(second_half) + 2);
         strcpy(full_path, first_half);
         strcat(full_path, " ");
-        strcat(full_path, second_half);
+        strcat(full_path, edited_second_half);
         printf("EDITED STRING: %s\n", full_path);
         printf("--------------SPECIAL CHARACTERS--------------\n\n");
     }
-    if(strstr(full_path, "%25") != NULL) {
+    while(strstr(full_path, "%25") != NULL) {
         printf("\n--------------SPECIAL CHARACTERS--------------\n");
         printf("THIS HAS A %%25 in it\n");
         char *first_half = strtok(full_path, "%");
@@ -279,8 +310,7 @@ void serve_local_file(int client_socket, const char *path) {
         strcat(full_path, second_half);
         printf("EDITED STRING: %s\n", full_path);
         printf("--------------SPECIAL CHARACTERS--------------\n\n");
-    }
-    
+    }    
     printf("FULL PATH: %s\n", full_path);
     printf("extension: %s\n", extension);
 
@@ -297,6 +327,7 @@ void serve_local_file(int client_socket, const char *path) {
 
         // get content length
         int content_length = find_length(full_path);
+        // int content_length = strlen(file_contents);
         printf("Content length is: %d\n",content_length);
 
         //test
