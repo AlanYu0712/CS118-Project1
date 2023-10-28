@@ -283,34 +283,55 @@ void serve_local_file(int client_socket, const char *path) {
     //     printf("--------------SPECIAL CHARACTERS--------------\n\n");
     // }
     while(strstr(full_path, "%20") != NULL) {
-        printf("\n--------------SPECIAL CHARACTERS--------------\n");
-        printf("THIS HAS A %%20 in it\n");
-        char *first_half = strtok(full_path, "%20");
-        printf("FIRST HALF: %s\n", first_half);
-        char *second_half = strtok(NULL, "\0");
-        char *edited_second_half = &second_half[2];
-        printf("SECOND HALF: %s\n", second_half);
-        full_path = malloc(strlen(first_half) + strlen(second_half) + 2);
-        strcpy(full_path, first_half);
-        strcat(full_path, " ");
-        strcat(full_path, edited_second_half);
+        printf("\n--------------SPECIAL CHARACTERS (SPACES)--------------\n");
+        char *ret;
+        char *ptr = full_path;
+
+        ret = strstr(full_path, "%20");
+        
+        int index = ret-ptr;
+
+        printf("The substring is: %c\n", full_path[index]);
+        full_path[index]=' ';
+        printf("The string is now %s\n", full_path);
+        printf("Upper bound is %d\n",strlen(full_path));
+        
+        int i;
+        for (i=index+1; i<strlen(full_path)-2; i++){
+            full_path[i]=full_path[i+2];
+            //printf("copyied: %c  @  %d",full_path[i],i);
+            //printf(" With modified: %s\n", full_path);
+        }
+        full_path[i]='\0';
+        
         printf("EDITED STRING: %s\n", full_path);
         printf("--------------SPECIAL CHARACTERS--------------\n\n");
     }
+   
     while(strstr(full_path, "%25") != NULL) {
-        printf("\n--------------SPECIAL CHARACTERS--------------\n");
-        printf("THIS HAS A %%25 in it\n");
-        char *first_half = strtok(full_path, "%");
-        printf("FIRST HALF: %s\n", first_half);
-        char *second_half = &(strtok(NULL, "\0"))[2];
-        printf("SECOND HALF: %s\n", second_half);
-        full_path = malloc(strlen(first_half) + strlen(second_half) + 2);
-        strcpy(full_path, first_half);
-        strcat(full_path, "%");
-        strcat(full_path, second_half);
+        printf("\n--------------SPECIAL CHARACTERS (%%)--------------\n");
+        char *ret;
+        char *ptr = full_path;
+
+        ret = strstr(full_path, "%25");
+        
+        int index = ret-ptr;
+
+        printf("The substring is: %c\n", full_path[index]);
+        full_path[index]='%';
+        printf("The string is now %s\n", full_path);
+        printf("Upper bound is %d\n",strlen(full_path));
+        
+        int i;
+        for (i=index+1; i<strlen(full_path)-2; i++){
+            full_path[i]=full_path[i+2];
+            //printf("copyied: %c  @  %d",full_path[i],i);
+            //printf(" With modified: %s\n", full_path);
+        }
+        full_path[i]='\0';
         printf("EDITED STRING: %s\n", full_path);
         printf("--------------SPECIAL CHARACTERS--------------\n\n");
-    }    
+    }   
     printf("FULL PATH: %s\n", full_path);
     printf("extension: %s\n", extension);
 
@@ -320,6 +341,8 @@ void serve_local_file(int client_socket, const char *path) {
     char *file_contents = read_file(full_path);
     if (file_contents == NULL) {
         printf("Error reading file.\n");
+        char response[] = "HTTP/1.0 404 Not Found\r\n\r\n";
+        send(client_socket, response, strlen(response), 0);
     }
 
     else{
@@ -411,6 +434,8 @@ void proxy_remote_file(struct server_app *app, int client_socket, const char *re
     sad.sin_port = htons(app->remote_port); 
     if (connect(c_socket, (struct sockaddr *)&sad, sizeof(sad))< 0) {
         perror("connect failed");
+        char response[] = "HTTP/1.0 502 Bad Gateway\r\n\r\n";
+        send(client_socket, response, strlen(response), 0);
         exit(EXIT_FAILURE);
     }else{
         printf("Accepted connection from %s:%d\n", inet_ntoa(sad.sin_addr), ntohs(sad.sin_port));
